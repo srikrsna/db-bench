@@ -9,21 +9,20 @@ type inMemoryStore struct {
 	sync.Map
 }
 
-func (db *inMemoryStore) Add(id string, agr Aggragate) error {
-	db.Map.Store(id, agr)
+func (db *inMemoryStore) Add(id string, user User) error {
+	db.Map.Store(id, user)
 	return nil
 }
 
-func (db *inMemoryStore) Get(id string) (Aggragate, error) {
+func (db *inMemoryStore) Get(id string) (User, error) {
 	if val, ok := db.Load(id); ok {
-		return val.(Aggragate), nil
+		return val.(User), nil
 	}
-
-	return Aggragate{}, errors.New("not found")
+	return User{}, errors.New("not found")
 }
 
-func (db *inMemoryStore) Update(agr Aggragate) error {
-	return db.Add(agr.ID, agr)
+func (db *inMemoryStore) Update(user User) error {
+	return db.Add(user.Name, user)
 }
 
 func (db *inMemoryStore) Delete(id string) error {

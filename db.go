@@ -2,13 +2,14 @@ package db
 
 // Store ...
 type Store interface {
-	Add(string, Aggragate) error
-	Get(string) (Aggragate, error)
-	Update(Aggragate) error
+	Add(string, User) error
+	Get(string) (User, error)
+	Update(User) error
 	Delete(string) error
 }
 
-// Aggragate ...
-type Aggragate struct {
-	ID string		
+type User struct {
+	Name    string `datastore:"name"`
+	Address string `datastore:"address"`
+	Contact string `datastore:"contact"`
 }
