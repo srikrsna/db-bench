@@ -12,7 +12,8 @@ type mySql struct {
 }
 
 func NewMySql() Store {
-	db, err := sql.Open("mysql", "root:pass@tcp(localhost:3306)/User")
+	settings := getCredentials()
+	db, err := sql.Open("mysql", settings.MySql.DbSourceName)
 	if err != nil {
 	log.Fatal(err)
 	}

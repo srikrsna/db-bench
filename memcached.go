@@ -19,7 +19,8 @@ type memcached struct {
 }
 
 func NewMemcached() Store {
-	mc := memcache.New("10.0.0.1:11211", "10.0.0.2:11211", "10.0.0.3:11212")
+	settings := getCredentials()
+	mc := memcache.New(settings.Memcached.Server)
 
 	return &memcached{
 		mc,

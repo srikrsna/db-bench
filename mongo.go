@@ -11,7 +11,9 @@ type mongoDB struct {
 }
 
 func NewMongo() Store {
-	session, err := mgo.Dial("server1.example.com,server2.example.com")
+	settings := getCredentials()
+
+	session, err := mgo.Dial(settings.Mongo.URL)
 	if err != nil {
 		panic(err)
 	}

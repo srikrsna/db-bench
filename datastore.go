@@ -13,7 +13,8 @@ type dataStore struct {
 
 func NewDataStore() Store {
 	ctx := context.Background()
-	dsClient, err := datastore.NewClient(ctx, "db-test-201306")
+	settings := getCredentials()
+	dsClient, err := datastore.NewClient(ctx, settings.Datastore.ProjectID)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -2,10 +2,37 @@ package db
 
 import (
 	"os"
-	"fmt"
-	"io/ioutil"
-	"github.com/Jeffail/gabs"
+	"log"
+	"encoding/json"
 )
+
+type Config struct {
+	Datastore struct {
+		ProjectID string `json:"projectId"`
+	} `json:"datastore"`
+	Mongo struct {
+		URL string `json:"url"`
+	} `json:"mongo"`
+	DynamoDb struct {
+		Region   string `json:"region"`
+		FileName string `json:"fileName"`
+		Profile  string `json:"profile"`
+	} `json:"dynamoDb"`
+	Memcached struct {
+		Server string `json:"server"`
+	} `json:"memcached"`
+	Redis struct {
+		Addr     string `json:"Addr"`
+		Password string `json:"Password"`
+		DB       int    `json:"DB"`
+	} `json:"redis"`
+	MySql struct {
+		DbSourceName string `json:"dbSourceName"`
+	} `json:"mySql"`
+	PostGres struct {
+		DbSourceName string `json:"dbSourceName"`
+	} `json:"postGres"`
+}
 
 // Store ...
 type Store interface {
@@ -21,17 +48,18 @@ type User struct {
 	Contact string `datastore:"contact"`
 }
 
+func getCredentials() *Config {
+	f, err := os.Open("./credentials.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
 
-func getCredentials ()interface{} {
-	raw, err := ioutil.ReadFile("./credentials.json")
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+	var config Config
+
+	if err := json.NewDecoder(f).Decode(&config); err != nil {
+		log.Fatalln(err)
 	}
-	settings, err := gabs.ParseJSON([]byte(raw))
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	return settings
+
+	return &config
 }
