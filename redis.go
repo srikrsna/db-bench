@@ -6,7 +6,6 @@ import (
 	"github.com/go-redis/redis"
 )
 
-
 type redisDB struct {
 	*redis.Client
 }
@@ -42,7 +41,6 @@ func (db *redisDB) Get(id string) (User, error) {
 	}
 	return User{}, errors.New("not found")
 }
-
 
 func (db *redisDB) Update(user User) error {
 	return nil
