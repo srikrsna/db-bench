@@ -5,7 +5,6 @@ import (
 	"log"
 	"encoding/json"
 )
-
 type Config struct {
 	Datastore struct {
 		ProjectID string `json:"projectId"`
@@ -32,6 +31,11 @@ type Config struct {
 	PostGres struct {
 		DbSourceName string `json:"dbSourceName"`
 	} `json:"postGres"`
+	EventStore struct {
+		URL      string `json:"url"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	} `json:"eventStore"`
 }
 
 // Store ...
@@ -43,9 +47,9 @@ type Store interface {
 }
 
 type User struct {
-	Name    string `datastore:"name"`
-	Address string `datastore:"address"`
-	Contact string `datastore:"contact"`
+	Name    string `datastore:"name" json:"name" bson:"name"`
+	Address string `datastore:"address" json:"address" bson:"address"`
+	Contact string `datastore:"contact" json:"contact" bson:"contact"`
 }
 
 func getCredentials() *Config {
