@@ -4,87 +4,60 @@ import (
 	"errors"
 	"log"
 	"github.com/Shopify/sarama"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"fmt"
-	"os/signal"
 	"os"
+	"os/signal"
 )
 
-type kafkaProducer struct {
+type kafkaObj struct {
 	sarama.SyncProducer
-}
-type kafkaConsumer struct {
 	sarama.Consumer
 }
-var (
-	brokerList        = kingpin.Flag("brokerList", "List of brokers to connect").Default("localhost:9092").Strings()
-	topic             = kingpin.Flag("topic", "Topic name").Default("important").String()
-	partition         = kingpin.Flag("partition", "Partition number").Default("0").String()
-	offsetType        = kingpin.Flag("offsetType", "Offset Type (OffsetNewest | OffsetOldest)").Default("-1").Int()
-	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
-)
 
-func NewKafkaProducer() Store {
+
+var brokers = []string{"127.0.0.1:9092"}
+var msgcount = 0
+
+func NewKafka() Store {
 	//settings := getCredentials()
-	kingpin.Parse()
+
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 5
 	config.Producer.Return.Successes = true
-	producer, err := sarama.NewSyncProducer(*brokerList, config)
+
+	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &kafkaProducer{
+
+	consumer, err := sarama.NewConsumer(brokers, nil)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return &kafkaObj{
 		producer,
+		consumer,
 	}
 }
 
-func (db *kafkaProducer) Add(id string, user User) error {
+func (db *kafkaObj) Add(id string, user User) error {
 	msg := &sarama.ProducerMessage{
-		Topic: *topic,
-		Value: sarama.StringEncoder(fmt.Sprintf("%d %d %d", user.Name, user.Contact, user.Address)),
+		Topic:     "users",
+		Partition: 99,
+		Value:     sarama.StringEncoder(fmt.Sprintf("%s %s %s", user.Name, user.Address, user.Contact)),
 	}
-	_, _, err := db.SendMessage(msg)
+	_, _, err := db.SyncProducer.SendMessage(msg)
 	if err != nil {
 		panic(err)
 	}
 	return nil
 }
 
-func (db *kafkaProducer) Get(id string) (User, error) {
-
-
-
-	return User{}, errors.New("not found")
-}
-
-func (db *kafkaProducer) Update(user User) error {
-	return nil
-}
-
-func (db *kafkaProducer) Delete(id string) error {
-	return nil
-}
-
-
-
-func NewKafkaConsumer() kafkaConsumer {
-	kingpin.Parse()
-	config := sarama.NewConfig()
-	config.Consumer.Return.Errors = true
-	brokers := *brokerList
-	master, err := sarama.NewConsumer(brokers, config)
-	if err != nil {
-		panic(err)
-	}
-	return kafkaConsumer{
-		master,
-	}
-}
-
-func listenKafka(kf *kafkaConsumer) {
-	consumer, err := kf.ConsumePartition(*topic, 0, sarama.OffsetOldest)
+func (db *kafkaObj) Get(id string) (User, error) {
+	consumer, err := db.Consumer.ConsumePartition("users", 0, sarama.OffsetOldest)
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +70,7 @@ func listenKafka(kf *kafkaConsumer) {
 			case err := <-consumer.Errors():
 				fmt.Println(err)
 			case msg := <-consumer.Messages():
-				*messageCountStart++
+				msgcount++
 				fmt.Println("Received messages", string(msg.Key), string(msg.Value))
 			case <-signals:
 				fmt.Println("Interrupt is detected")
@@ -105,4 +78,14 @@ func listenKafka(kf *kafkaConsumer) {
 			}
 		}
 	}()
+	return User{}, errors.New("not found")
 }
+
+func (db *kafkaObj) Update(user User) error {
+	return nil
+}
+
+func (db *kafkaObj) Delete(id string) error {
+	return nil
+}
+
