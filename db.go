@@ -36,6 +36,13 @@ type Config struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	} `json:"eventStore"`
+	Kafka struct {
+		Brokers string `json:"brokers"`
+	} `json:"kafka"`
+	NATS struct {
+		ClusterID string `json:"clusterId"`
+		ClientID  string `json:"clientId"`
+	} `json:"NATS"`
 }
 
 // Store ...
