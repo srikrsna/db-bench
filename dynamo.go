@@ -15,9 +15,10 @@ type dynamoDB struct {
 }
 
 func NewDynamoDB() Store {
+	settings := getCredentials()
 	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String("us-west-2"),
-		Credentials: credentials.NewSharedCredentials("/Users/someone/.aws/credentials", "YOUR_AWS_PROFILE_NAME"),
+		Region:      aws.String(settings.DynamoDb.Region),
+		Credentials: credentials.NewSharedCredentials(settings.DynamoDb.FileName, settings.DynamoDb.Profile),
 	})
 	if err != nil {
 		log.Fatal(err)

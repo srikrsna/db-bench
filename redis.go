@@ -4,28 +4,45 @@ import (
 	"errors"
 	"log"
 	"github.com/go-redis/redis"
+	"bytes"
+	"encoding/gob"
+	"sync"
 )
 
 type redisDB struct {
 	*redis.Client
+	bytePool sync.Pool
 }
 
 func Newredis() Store {
+	settings := getCredentials()
 
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:     settings.Redis.Addr,
+		Password: settings.Redis.Password,
+		DB:       settings.Redis.DB,
 	})
 
 	return &redisDB{
 		client,
+		sync.Pool{New: func() interface{} {
+			return new(bytes.Buffer)
+		},
+		},
 	}
 }
 
 func (db *redisDB) Add(id string, user User) error {
 
-	err := db.Client.Set(id, &user, 0).Err()
+	data := db.bytePool.Get().(*bytes.Buffer)
+	data.Reset()
+
+	enc := gob.NewEncoder(data)
+	if err := enc.Encode(&user); err != nil {
+		return err
+	}
+
+	err := db.Client.Set(id, data.Bytes(), 0).Err()
 	if err != nil {
 		log.Fatalf("Failed to save %v", err)
 

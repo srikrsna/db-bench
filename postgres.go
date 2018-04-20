@@ -12,7 +12,8 @@ type postGres struct {
 }
 
 func NewPostGres() Store {
-	db, err := sql.Open("postgres", "postgres://user:pass@localhost/test?sslmode=disable")
+	settings := getCredentials()
+	db, err := sql.Open("postgres", settings.PostGres.DbSourceName)
 	if err != nil {
 		log.Fatal(err)
 	}
